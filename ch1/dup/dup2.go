@@ -1,7 +1,8 @@
 package main
+
 import (
-	"fmt"
 	"bufio"
+	"fmt"
 	"os"
 )
 
@@ -9,7 +10,7 @@ func main() {
 	counts := make(map[string]int)
 	files := os.Args[1:]
 	if len(files) == 0 {
-		countLines(os.Stdin, counts)
+		countLines(os.Stdin, "<stdin>", counts)
 	} else {
 		for _, arg := range files {
 			f, err := os.Open(arg)
@@ -17,7 +18,7 @@ func main() {
 				fmt.Fprintf(os.Stderr, "dup2: %v\n", err)
 				continue
 			}
-			countLines(f, counts)
+			countLines(f, arg, counts)
 			f.Close()
 		}
 	}
@@ -28,10 +29,13 @@ func main() {
 	}
 }
 
-func countLines(f *os.File, counts map[string]int) {
+func countLines(f *os.File, arg string, counts map[string]int) {
 	input := bufio.NewScanner(f)
-	for input.Scan() {
-		counts[input.Text()]++
+	if input.Err() != nil {
+		fmt.Println(input.Err())
+	} else {
+		for input.Scan() {
+			counts[arg+"|"+input.Text()]++
+		}
 	}
-	// Note: Ignoring errors from input.Err()
 }
